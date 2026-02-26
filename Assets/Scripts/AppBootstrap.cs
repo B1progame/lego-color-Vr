@@ -181,7 +181,7 @@ namespace QuestLegoColorFinder
             Application.targetFrameRate = 72;
             QualitySettings.vSyncCount = 0;
 
-            EnsureRuntimeRig();
+            yield return StartCoroutine(ResolveRuntimeRigRoutine());
             EnsureControllers();
             EnsureUi();
             WireUiEvents();
@@ -194,6 +194,23 @@ namespace QuestLegoColorFinder
             SetMode(RuntimeHighlightMode.BasicStyling, "Passthrough styling fallback active.");
 
             yield return StartCoroutine(InitializeModeSelectionRoutine());
+        }
+
+        private IEnumerator ResolveRuntimeRigRoutine()
+        {
+            // Give Meta XR Building Blocks / XR rig a short window to initialize cameras before we create a fallback camera.
+            float timeoutAt = Time.realtimeSinceStartup + 2.0f;
+            while (Time.realtimeSinceStartup < timeoutAt)
+            {
+                if (TryBindExistingRuntimeRig())
+                {
+                    yield break;
+                }
+
+                yield return null;
+            }
+
+            EnsureRuntimeRig();
         }
 
         private void OnDestroy()
@@ -241,6 +258,11 @@ namespace QuestLegoColorFinder
 
         private void EnsureRuntimeRig()
         {
+            if (TryBindExistingRuntimeRig())
+            {
+                return;
+            }
+
             _xrCamera = Camera.main;
             if (_xrCamera != null)
             {
@@ -266,6 +288,38 @@ namespace QuestLegoColorFinder
             _xrCamera.allowMSAA = false;
 
             cameraGo.AddComponent<AudioListener>();
+        }
+
+        private bool TryBindExistingRuntimeRig()
+        {
+            Camera main = Camera.main;
+            if (main != null && main.isActiveAndEnabled)
+            {
+                _xrCamera = main;
+                _rigRoot = main.transform.root != null ? main.transform.root.gameObject : main.gameObject;
+                return true;
+            }
+
+            Camera[] cameras = FindObjectsOfType<Camera>(true);
+            for (int i = 0; i < cameras.Length; i++)
+            {
+                Camera cam = cameras[i];
+                if (cam == null || !cam.isActiveAndEnabled)
+                {
+                    continue;
+                }
+
+                if (cam.cameraType != CameraType.Game)
+                {
+                    continue;
+                }
+
+                _xrCamera = cam;
+                _rigRoot = cam.transform.root != null ? cam.transform.root.gameObject : cam.gameObject;
+                return true;
+            }
+
+            return false;
         }
 
         private void EnsureControllers()
