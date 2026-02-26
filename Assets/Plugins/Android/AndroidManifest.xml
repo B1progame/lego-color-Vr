@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="${applicationId}">
+
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission
+        android:name="horizonos.permission.HEADSET_CAMERA"
+        tools:ignore="ProtectedPermissions" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+
+    <application>
+        <activity
+            android:name="com.unity3d.player.UnityPlayerActivity"
+            android:theme="@style/UnityThemeSelector"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="landscape"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density"
+            android:hardwareAccelerated="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
+        </activity>
+
+        <meta-data
+            android:name="com.oculus.supportedDevices"
+            android:value="quest3|quest3s"
+            tools:replace="android:value" />
+        <meta-data
+            android:name="com.oculus.intent.category.VR"
+            android:value="vr_only"
+            tools:replace="android:value" />
+    </application>
+</manifest>
